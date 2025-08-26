@@ -5,6 +5,8 @@ import Dashboard from "./components/Dashboard";
 import PDFUploader from "./components/PDFUploader";
 import Navbar from "./components/Navbar";
 import RootLayout from "./components/RootLayout";
+import RegisterForm from './components/RegisterForm';
+import Login from './components/Login';
 
 const App = () => {
   const router = createBrowserRouter([
@@ -23,6 +25,14 @@ const App = () => {
         {
           path: "/upload-pdf",
           element: <PDFUploader />,
+        },
+         {
+          path: "/login",
+          element: <Login/>,
+        },
+         {
+          path: "/Register",
+          element: <RegisterForm/>,
         },
       ],
     },
