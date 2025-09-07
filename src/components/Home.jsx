@@ -1,8 +1,10 @@
+/* eslint-disable no-unused-vars */
 import React, { useState } from 'react';
 import { FiMenu, FiX, FiPhone, FiMapPin, FiClock, FiInstagram, FiFacebook, FiTwitter } from 'react-icons/fi';
 import { MdDeliveryDining } from 'react-icons/md';
 import { GiChefToque, GiOrange } from 'react-icons/gi';
 import Navbar from './Navbar';
+import { NavLink } from 'react-router-dom';
 
 
 
@@ -65,9 +67,9 @@ const Home = () => {
                 Today, we've grown into a beloved neighborhood restaurant while maintaining our commitment to quality ingredients 
                 and warm hospitality. Every dish tells a story of tradition meeting innovation.
               </p>
-              <button className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-full transition duration-300">
+              {/* <button className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-full transition duration-300">
                 Meet Our Chef
-              </button>
+              </button> */}
             </div>
             <div className="md:w-1/2">
               <div className="grid grid-cols-2 gap-4">
@@ -206,15 +208,16 @@ const Home = () => {
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center mb-6 md:mb-0">
-              <GiOrange className="text-3xl mr-2" />
-              <span className="text-2xl font-bold">Belee</span>
+              {/* <GiOrange className="text-3xl mr-2" /> */}
+              <img src='belee-logo-white.png' className='w-20 h-20' alt='white logo'/>
+              <span className="text-2xl font-bold hidden">Belee</span>
             </div>
             
             <div className="flex space-x-6 mb-6 md:mb-0">
               <a href="#home" className="hover:text-orange-200 transition">Home</a>
-              <a href="#dashboard" className="hover:text-orange-200 transition">Dashboard</a>
+              <NavLink to="/dashboard" className="hover:text-orange-200 transition">Dashboard</NavLink>
               <a href="#about" className="hover:text-orange-200 transition">About</a>
-              <a href="#contact" className="hover:text-orange-200 transition">Contact</a>
+              {/* <a href="#contact" className="hover:text-orange-200 transition">Contact</a> */}
             </div>
             
             {/* <div className="flex space-x-4">

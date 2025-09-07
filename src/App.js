@@ -7,6 +7,8 @@ import Navbar from "./components/Navbar";
 import RootLayout from "./components/RootLayout";
 import RegisterForm from './components/RegisterForm';
 import Login from './components/Login';
+import AuthRequired from "./components/route-protection/AuthRequired";
+import AIAdvicePage from './components/AIAdvicePage';
 
 const App = () => {
   const router = createBrowserRouter([
@@ -20,11 +22,11 @@ const App = () => {
     },
         {
           path: "/dashboard",
-          element: <Dashboard />,
+          element: <AuthRequired><Dashboard /></AuthRequired>,
         },
         {
           path: "/upload-pdf",
-          element: <PDFUploader />,
+          element: <AuthRequired><PDFUploader /></AuthRequired>,
         },
          {
           path: "/login",
@@ -33,6 +35,10 @@ const App = () => {
          {
           path: "/Register",
           element: <RegisterForm/>,
+        },
+         {
+          path: "/ai-advice",
+          element: <AuthRequired><AIAdvicePage/></AuthRequired>,
         },
       ],
     },
