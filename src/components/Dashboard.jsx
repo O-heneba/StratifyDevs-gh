@@ -1,10 +1,16 @@
-import React, { useState } from "react";
-import { Bar, Pie } from "react-chartjs-2";
+/* eslint-disable react/no-unescaped-entities */
+import React, { useEffect, useState } from "react";
+import { ChefHat, Utensils, Coffee, TrendingUp, DollarSign, PieChart, Calendar, RefreshCw, Download, Filter, BarChart3 } from "lucide-react";
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from './../AUTH/firebase-auth';
+import { Bar, Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
   BarElement,
+  LineElement,
+  PointElement,
   ArcElement,
   Title,
   Tooltip,
@@ -16,173 +22,396 @@ ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
+  LineElement,
+  PointElement,
   ArcElement,
   Title,
   Tooltip,
   Legend
 );
 
-const Dashboard = () => {
-  const [timeRange, setTimeRange] = useState("week");
+export default function RestaurantDashboard() {
+  const [labels, setLabels] = useState([]);
+  const [earnings, setEarnings] = useState([]);
+  const [taxes, setTaxes] = useState([]);
+  const [totalSales, setTotalSales] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [timeRange, setTimeRange] = useState('last6months');
+  const [activeChart, setActiveChart] = useState('bar');
 
-  // Sample sales data - replace with your actual data
-  const salesData = {
-    week: {
-      labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-      revenue: [1200, 1900, 1500, 2100, 3200, 2800, 3500],
-      popularItems: [
-        { name: "Truffle Pasta", sales: 42 },
-        { name: "Orange Salmon", sales: 38 },
-        { name: "Belee Burger", sales: 35 },
-      ],
-    },
-    month: {
-      labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
-      revenue: [9800, 11500, 10200, 13400],
-      popularItems: [
-        { name: "Truffle Pasta", sales: 156 },
-        { name: "Orange Salmon", sales: 142 },
-        { name: "Belee Burger", sales: 128 },
-      ],
-    },
+  const fetchFilesData = async () => {
+    try {
+      setLoading(true);
+      // Check if user is authenticated
+      if (!auth.currentUser) {
+        setError("User not authenticated");
+        setLoading(false);
+        return;
+      }
+
+      const dataRef = doc(db, 'users', auth.currentUser.uid);
+      const dataSnap = await getDoc(dataRef);
+      
+      if (!dataSnap.exists()) {
+        setError("No data found");
+        setLoading(false);
+        return;
+      }
+
+      const userData = dataSnap.data();
+      
+      // Check if files data exists and is an array
+      if (!userData.files || !Array.isArray(userData.files)) {
+        setError("Files data is not in expected format");
+        setLoading(false);
+        return;
+      }
+
+      // Extract data from files array
+      const labelsData = userData.files.map(file => file.period);
+      const earningsData = userData.files.map(file => file.earnings);
+      const taxesData = userData.files.map(file => file.taxes);
+      const totalSalesData = userData.files.map(file => file.totalSales);
+
+      setLabels(labelsData);
+      setEarnings(earningsData);
+      setTaxes(taxesData);
+      setTotalSales(totalSalesData);
+      
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError("Failed to fetch data");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const currentData = salesData[timeRange];
-  const totalRevenue = currentData.revenue.reduce((a, b) => a + b, 0);
+  useEffect(() => {
+    fetchFilesData();
+  }, []);
 
-  const revenueChart = {
-    labels: currentData.labels,
+  // Calculate summary metrics
+  const totalEarnings = earnings.reduce((sum, value) => sum + value, 0);
+  const totalTaxes = taxes.reduce((sum, value) => sum + value, 0);
+  const totalSalesAmount = totalSales.reduce((sum, value) => sum + value, 0);
+  const netProfit = totalEarnings - totalTaxes;
+
+  // Bar Chart data configuration
+  const barChartData = {
+    labels: labels,
     datasets: [
       {
-        label: "Revenue ($)",
-        data: currentData.revenue,
-        backgroundColor: "rgba(249, 115, 22, 0.7)",
-        borderColor: "rgba(249, 115, 22, 1)",
+        label: "Total Sales",
+        data: totalSales,
+        backgroundColor: "rgba(255, 138, 0, 0.7)",
+        borderColor: "rgb(255, 138, 0)",
         borderWidth: 1,
+        borderRadius: 6,
+        barPercentage: 0.6,
+      },
+      {
+        label: "Earnings",
+        data: earnings,
+        backgroundColor: "rgba(251, 191, 36, 0.7)",
+        borderColor: "rgb(251, 191, 36)",
+        borderWidth: 1,
+        borderRadius: 6,
+        barPercentage: 0.6,
+      },
+      {
+        label: "Taxes",
+        data: taxes,
+        backgroundColor: "rgba(194, 65, 12, 0.7)",
+        borderColor: "rgb(194, 65, 12)",
+        borderWidth: 1,
+        borderRadius: 6,
+        barPercentage: 0.6,
       },
     ],
   };
 
-  const popularItemsChart = {
-    labels: currentData.popularItems.map((item) => item.name),
+  // Line Chart data configuration
+  const lineChartData = {
+    labels: labels,
     datasets: [
       {
-        data: currentData.popularItems.map((item) => item.sales),
-        backgroundColor: [
-          "rgba(249, 115, 22, 0.7)",
-          "rgba(251, 146, 60, 0.7)",
-          "rgba(253, 186, 116, 0.7)",
-        ],
-        borderWidth: 1,
+        label: "Total Sales",
+        data: totalSales,
+        borderColor: "rgb(255, 138, 0)",
+        backgroundColor: "rgba(255, 138, 0, 0.1)",
+        tension: 0.3,
+        fill: true,
+        pointBackgroundColor: "rgb(255, 138, 0)",
+        pointBorderColor: "#fff",
+        pointHoverBackgroundColor: "#fff",
+        pointHoverBorderColor: "rgb(255, 138, 0)",
+        pointRadius: 5,
+        pointHoverRadius: 7,
+      },
+      {
+        label: "Earnings",
+        data: earnings,
+        borderColor: "rgb(251, 191, 36)",
+        backgroundColor: "rgba(251, 191, 36, 0.1)",
+        tension: 0.3,
+        fill: true,
+        pointBackgroundColor: "rgb(251, 191, 36)",
+        pointBorderColor: "#fff",
+        pointHoverBackgroundColor: "#fff",
+        pointHoverBorderColor: "rgb(251, 191, 36)",
+        pointRadius: 5,
+        pointHoverRadius: 7,
+      },
+      {
+        label: "Taxes",
+        data: taxes,
+        borderColor: "rgb(194, 65, 12)",
+        backgroundColor: "rgba(194, 65, 12, 0.1)",
+        tension: 0.3,
+        fill: true,
+        pointBackgroundColor: "rgb(194, 65, 12)",
+        pointBorderColor: "#fff",
+        pointHoverBackgroundColor: "#fff",
+        pointHoverBorderColor: "rgb(194, 65, 12)",
+        pointRadius: 5,
+        pointHoverRadius: 7,
       },
     ],
   };
 
-  
+  // Chart options
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          usePointStyle: true,
+          padding: 20,
+          font: {
+            size: 13,
+            family: "'Inter', sans-serif"
+          }
+        }
+      },
+      title: {
+        display: true,
+        text: 'Restaurant Financial Performance',
+        font: {
+          size: 16,
+          weight: 'bold',
+          family: "'Inter', sans-serif"
+        },
+        padding: {
+          bottom: 20
+        }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(17, 24, 39, 0.9)',
+        padding: 12,
+        titleFont: {
+          size: 14,
+          family: "'Inter', sans-serif"
+        },
+        bodyFont: {
+          size: 13,
+          family: "'Inter', sans-serif"
+        },
+        boxPadding: 4,
+        usePointStyle: true,
+        callbacks: {
+          label: function(context) {
+            return `${context.dataset.label}: GHS ${context.raw.toLocaleString()}`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: {
+          display: false,
+        },
+        ticks: {
+          font: {
+            size: 12,
+            family: "'Inter', sans-serif"
+          }
+        }
+      },
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.05)',
+        },
+        ticks: {
+          font: {
+            size: 12,
+            family: "'Inter', sans-serif"
+          },
+          callback: function(value) {
+            return 'GHS ' + value.toLocaleString();
+          }
+        }
+      },
+    },
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 flex justify-center items-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading your restaurant data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 flex justify-center items-center px-4">
+        <div className="max-w-md w-full bg-white rounded-xl shadow-md p-6 text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">Something went wrong</h3>
+          <p className="mt-2 text-sm text-gray-500">{error}</p>
+          <button 
+            onClick={fetchFilesData}
+            className="mt-6 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center justify-center mx-auto"
+          >
+            <RefreshCw size={16} className="mr-2" />
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (labels.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 flex justify-center items-center px-4">
+        <div className="max-w-md w-full bg-white rounded-xl shadow-md p-6 text-center">
+          <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto">
+            <ChefHat className="h-8 w-8 text-orange-600" />
+          </div>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">No data available</h3>
+          <p className="mt-2 text-sm text-gray-500">We couldn't find any financial records for your restaurant.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      {/* Dashboard Section (Replaces Menu) */}
-      <section id="dashboard" className="py-20 bg-white">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-orange-500 mb-4">
-              Sales Dashboard
-            </h2>
-            <div className="w-20 h-1 bg-orange-400 mx-auto mb-6"></div>
+    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 ">
+     
 
-            <div className="flex justify-center space-x-4 mb-8">
-              <button
-                onClick={() => setTimeRange("week")}
-                className={`px-4 py-2 rounded-full ${
-                  timeRange === "week"
-                    ? "bg-orange-500 text-white"
-                    : "bg-orange-100 text-orange-600"
-                }`}
-              >
-                Weekly
-              </button>
-              <button
-                onClick={() => setTimeRange("month")}
-                className={`px-4 py-2 rounded-full ${
-                  timeRange === "month"
-                    ? "bg-orange-500 text-white"
-                    : "bg-orange-100 text-orange-600"
-                }`}
-              >
-                Monthly
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-orange-50 rounded-xl p-6 mb-8">
-            <h3 className="text-xl font-semibold text-orange-600 mb-4">
-              Total Revenue: ${totalRevenue.toLocaleString()}
-            </h3>
-            <div className="h-64">
-              <Bar
-                data={revenueChart}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
-                      position: "top",
-                    },
-                  },
-                  scales: {
-                    y: {
-                      beginAtZero: true,
-                    },
-                  },
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-orange-50 rounded-xl p-6">
-              <h3 className="text-xl font-semibold text-orange-600 mb-4">
-                Popular Items
-              </h3>
-              <div className="h-64">
-                <Pie
-                  data={popularItemsChart}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                      legend: {
-                        position: "right",
-                      },
-                    },
-                  }}
-                />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8 mt-20">
+          <div className="bg-white rounded-xl shadow-sm p-5 border border-orange-100">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Sales</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">GHS {totalSalesAmount.toLocaleString()}</p>
+                <p className="text-xs text-green-600 mt-2 flex items-center">
+                  <TrendingUp size={12} className="mr-1" />
+                  +12.3% from last period
+                </p>
+              </div>
+              <div className="bg-orange-100 p-3 rounded-lg">
+                <DollarSign className="h-5 w-5 text-orange-600" />
               </div>
             </div>
+          </div>
 
-            <div className="bg-orange-50 rounded-xl p-6">
-              <h3 className="text-xl font-semibold text-orange-600 mb-4">
-                Top Selling Items
-              </h3>
-              <ul className="space-y-3">
-                {currentData.popularItems.map((item, index) => (
-                  <li
-                    key={index}
-                    className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm"
-                  >
-                    <span className="font-medium">{item.name}</span>
-                    <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full">
-                      {item.sales} sold
-                    </span>
-                  </li>
-                ))}
-              </ul>
+          <div className="bg-white rounded-xl shadow-sm p-5 border border-orange-100">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Earnings</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">GHS {totalEarnings.toLocaleString()}</p>
+                <p className="text-xs text-green-600 mt-2 flex items-center">
+                  <TrendingUp size={12} className="mr-1" />
+                  +8.5% from last period
+                </p>
+              </div>
+              <div className="bg-amber-100 p-3 rounded-lg">
+                <TrendingUp className="h-5 w-5 text-amber-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-5 border border-orange-100">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Taxes</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">GHS {totalTaxes.toLocaleString()}</p>
+                <p className="text-xs text-gray-600 mt-2">Included in expenses</p>
+              </div>
+              <div className="bg-red-100 p-3 rounded-lg">
+                <PieChart className="h-5 w-5 text-red-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-5 border border-orange-100">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Net Profit</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">GHS {netProfit.toLocaleString()}</p>
+                <p className="text-xs text-green-600 mt-2 flex items-center">
+                  <TrendingUp size={12} className="mr-1" />
+                  +10.2% from last period
+                </p>
+              </div>
+              <div className="bg-amber-100 p-3 rounded-lg">
+                <Calendar className="h-5 w-5 text-amber-600" />
+              </div>
             </div>
           </div>
         </div>
-      </section>
+
+        {/* Chart Section */}
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-orange-100">
+          <div className="h-96">
+           
+              <Bar data={barChartData} options={chartOptions} />
+            
+              <Line data={lineChartData} options={chartOptions} />
+          
+          </div>
+
+          <div className="h-96">
+           
+              
+            
+              <Line data={lineChartData} options={chartOptions} />
+          
+          </div>
+        </div>
+
+       
+
+       
+      </main>
+
+      <footer className="bg-white border-t border-orange-200 py-6 mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-600 text-sm">
+          <p>© {new Date().getFullYear()} Belee Restaurant. All rights reserved.</p>
+        </div>
+      </footer>
+
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+          font-family: 'Inter', sans-serif;
+        }
+      `}</style>
     </div>
   );
-};
-
-export default Dashboard;
+}
