@@ -6,23 +6,24 @@ import { auth } from "../AUTH/firebase-auth";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const [email,setEmail] = useState('')
-  const [password,setPassword] = useState('')
-  const navigate = useNavigate()
-
-  const logInFunc = async(e) =>{
-    e.preventDefault()
-    try{
-      const res = await signInWithEmailAndPassword(auth,email,password)
-      navigate('/')
-    console.log(res)
-    }catch(err){
-      console.log(err)
-      
+  const logInFunc = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      const res = await signInWithEmailAndPassword(auth, email, password);
+      setLoading(false);
+      navigate("/");
+      console.log(res);
+    } catch (err) {
+      setLoading(false);
+      console.log(err);
     }
-
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-500 to-orange-300 p-4">
@@ -47,7 +48,9 @@ export default function Login() {
             <input
               type="email"
               required
-              onChange={(e)=>{setEmail(e.target.value)}}
+              onChange={(e) => {
+                setEmail(e.target.value);
+              }}
               placeholder="Enter your email"
               className="w-full px-4 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none"
             />
@@ -59,7 +62,9 @@ export default function Login() {
             </label>
             <input
               type="password"
-              onChange={(e)=>{setPassword(e.target.value)}}
+              onChange={(e) => {
+                setPassword(e.target.value);
+              }}
               required
               placeholder="Enter your password"
               className="w-full px-4 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none"
@@ -68,10 +73,13 @@ export default function Login() {
 
           <button
             type="submit"
+            disabled={loading}
             onClick={logInFunc}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 rounded-lg shadow-md transition-transform duration-200 hover:scale-[1.02]"
+            className={`${
+              loading ? "bg-orange-100" : "bg-orange-500 hover:bg-orange-600"
+            } w-full text-white font-semibold py-2 rounded-lg shadow-md transition-transform duration-200 hover:scale-[1.02]`}
           >
-            Sign In
+            {!loading ? "Sign In" : " Loading"}
           </button>
         </form>
 

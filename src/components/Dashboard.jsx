@@ -1,8 +1,20 @@
 /* eslint-disable react/no-unescaped-entities */
 import React, { useEffect, useState } from "react";
-import { ChefHat, Utensils, Coffee, TrendingUp, DollarSign, PieChart, Calendar, RefreshCw, Download, Filter, BarChart3 } from "lucide-react";
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from './../AUTH/firebase-auth';
+import {
+  ChefHat,
+  Utensils,
+  Coffee,
+  TrendingUp,
+  DollarSign,
+  PieChart,
+  Calendar,
+  RefreshCw,
+  Download,
+  Filter,
+  BarChart3,
+} from "lucide-react";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "./../AUTH/firebase-auth";
 import { Bar, Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -37,8 +49,8 @@ export default function RestaurantDashboard() {
   const [totalSales, setTotalSales] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [timeRange, setTimeRange] = useState('last6months');
-  const [activeChart, setActiveChart] = useState('bar');
+  const [timeRange, setTimeRange] = useState("last6months");
+  const [activeChart, setActiveChart] = useState("bar");
 
   const fetchFilesData = async () => {
     try {
@@ -50,9 +62,9 @@ export default function RestaurantDashboard() {
         return;
       }
 
-      const dataRef = doc(db, 'users', auth.currentUser.uid);
+      const dataRef = doc(db, "users", auth.currentUser.uid);
       const dataSnap = await getDoc(dataRef);
-      
+
       if (!dataSnap.exists()) {
         setError("No data found");
         setLoading(false);
@@ -60,7 +72,7 @@ export default function RestaurantDashboard() {
       }
 
       const userData = dataSnap.data();
-      
+
       // Check if files data exists and is an array
       if (!userData.files || !Array.isArray(userData.files)) {
         setError("Files data is not in expected format");
@@ -69,16 +81,15 @@ export default function RestaurantDashboard() {
       }
 
       // Extract data from files array
-      const labelsData = userData.files.map(file => file.period);
-      const earningsData = userData.files.map(file => file.earnings);
-      const taxesData = userData.files.map(file => file.taxes);
-      const totalSalesData = userData.files.map(file => file.totalSales);
+      const labelsData = userData.files.map((file) => file.period);
+      const earningsData = userData.files.map((file) => file.earnings);
+      const taxesData = userData.files.map((file) => file.taxes);
+      const totalSalesData = userData.files.map((file) => file.totalSales);
 
       setLabels(labelsData);
       setEarnings(earningsData);
       setTaxes(taxesData);
       setTotalSales(totalSalesData);
-      
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to fetch data");
@@ -186,47 +197,49 @@ export default function RestaurantDashboard() {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top',
+        position: "top",
         labels: {
           usePointStyle: true,
           padding: 20,
           font: {
             size: 13,
-            family: "'Inter', sans-serif"
-          }
-        }
+            family: "'Inter', sans-serif",
+          },
+        },
       },
       title: {
         display: true,
-        text: 'Restaurant Financial Performance',
+        text: "Restaurant Financial Performance",
         font: {
           size: 16,
-          weight: 'bold',
-          family: "'Inter', sans-serif"
+          weight: "bold",
+          family: "'Inter', sans-serif",
         },
         padding: {
-          bottom: 20
-        }
+          bottom: 20,
+        },
       },
       tooltip: {
-        backgroundColor: 'rgba(17, 24, 39, 0.9)',
+        backgroundColor: "rgba(17, 24, 39, 0.9)",
         padding: 12,
         titleFont: {
           size: 14,
-          family: "'Inter', sans-serif"
+          family: "'Inter', sans-serif",
         },
         bodyFont: {
           size: 13,
-          family: "'Inter', sans-serif"
+          family: "'Inter', sans-serif",
         },
         boxPadding: 4,
         usePointStyle: true,
         callbacks: {
-          label: function(context) {
-            return `${context.dataset.label}: GHS ${context.raw.toLocaleString()}`;
-          }
-        }
-      }
+          label: function (context) {
+            return `${
+              context.dataset.label
+            }: GHS ${context.raw.toLocaleString()}`;
+          },
+        },
+      },
     },
     scales: {
       x: {
@@ -236,24 +249,24 @@ export default function RestaurantDashboard() {
         ticks: {
           font: {
             size: 12,
-            family: "'Inter', sans-serif"
-          }
-        }
+            family: "'Inter', sans-serif",
+          },
+        },
       },
       y: {
         beginAtZero: true,
         grid: {
-          color: 'rgba(0, 0, 0, 0.05)',
+          color: "rgba(0, 0, 0, 0.05)",
         },
         ticks: {
           font: {
             size: 12,
-            family: "'Inter', sans-serif"
+            family: "'Inter', sans-serif",
           },
-          callback: function(value) {
-            return 'GHS ' + value.toLocaleString();
-          }
-        }
+          callback: function (value) {
+            return "GHS " + value.toLocaleString();
+          },
+        },
       },
     },
   };
@@ -271,16 +284,29 @@ export default function RestaurantDashboard() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 flex justify-center items-center px-4">
+      <div className="min-h-screen bg-gradient-to-b from-orange-500 to-amber-50 flex justify-center items-center px-4  ">
         <div className="max-w-md w-full bg-white rounded-xl shadow-md p-6 text-center">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-8 w-8 text-red-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           </div>
-          <h3 className="mt-4 text-lg font-medium text-gray-900">Something went wrong</h3>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">
+            Something went wrong
+          </h3>
           <p className="mt-2 text-sm text-gray-500">{error}</p>
-          <button 
+          <button
             onClick={fetchFilesData}
             className="mt-6 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center justify-center mx-auto"
           >
@@ -299,26 +325,35 @@ export default function RestaurantDashboard() {
           <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto">
             <ChefHat className="h-8 w-8 text-orange-600" />
           </div>
-          <h3 className="mt-4 text-lg font-medium text-gray-900">No data available</h3>
-          <p className="mt-2 text-sm text-gray-500">We couldn't find any financial records for your restaurant.</p>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">
+            No data available
+          </h3>
+          <p className="mt-2 text-sm text-gray-500">
+            We couldn't find any financial records for your restaurant.
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 ">
-     
-
+    <div
+      className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 bg-orange-50 bg-opacity-80 bg-blend-overlay bg-cover bg-center"
+      style={{
+        backgroundImage:
+          'url("https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80")',
+      }}
+    >
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8 mt-20">
           <div className="bg-white rounded-xl shadow-sm p-5 border border-orange-100">
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Sales</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">GHS {totalSalesAmount.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">
+                  GHS {totalSalesAmount.toLocaleString()}
+                </p>
                 <p className="text-xs text-green-600 mt-2 flex items-center">
                   <TrendingUp size={12} className="mr-1" />
                   +12.3% from last period
@@ -334,7 +369,9 @@ export default function RestaurantDashboard() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-medium text-gray-600">Earnings</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">GHS {totalEarnings.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">
+                  GHS {totalEarnings.toLocaleString()}
+                </p>
                 <p className="text-xs text-green-600 mt-2 flex items-center">
                   <TrendingUp size={12} className="mr-1" />
                   +8.5% from last period
@@ -350,8 +387,12 @@ export default function RestaurantDashboard() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-medium text-gray-600">Taxes</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">GHS {totalTaxes.toLocaleString()}</p>
-                <p className="text-xs text-gray-600 mt-2">Included in expenses</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">
+                  GHS {totalTaxes.toLocaleString()}
+                </p>
+                <p className="text-xs text-gray-600 mt-2">
+                  Included in expenses
+                </p>
               </div>
               <div className="bg-red-100 p-3 rounded-lg">
                 <PieChart className="h-5 w-5 text-red-600" />
@@ -363,7 +404,9 @@ export default function RestaurantDashboard() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-medium text-gray-600">Net Profit</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">GHS {netProfit.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">
+                  GHS {netProfit.toLocaleString()}
+                </p>
                 <p className="text-xs text-green-600 mt-2 flex items-center">
                   <TrendingUp size={12} className="mr-1" />
                   +10.2% from last period
@@ -379,37 +422,29 @@ export default function RestaurantDashboard() {
         {/* Chart Section */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-orange-100">
           <div className="h-96">
-           
-              <Bar data={barChartData} options={chartOptions} />
-            
-              <Line data={lineChartData} options={chartOptions} />
-          
+            <Bar data={barChartData} options={chartOptions} />
+
+            <Line data={lineChartData} options={chartOptions} />
           </div>
 
           <div className="h-96">
-           
-              
-            
-              <Line data={lineChartData} options={chartOptions} />
-          
+            <Line data={lineChartData} options={chartOptions} />
           </div>
         </div>
-
-       
-
-       
       </main>
 
       <footer className="bg-white border-t border-orange-200 py-6 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-600 text-sm">
-          <p>© {new Date().getFullYear()} Belee Restaurant. All rights reserved.</p>
+          <p>
+            © {new Date().getFullYear()} Belee Restaurant. All rights reserved.
+          </p>
         </div>
       </footer>
 
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
         body {
-          font-family: 'Inter', sans-serif;
+          font-family: "Inter", sans-serif;
         }
       `}</style>
     </div>
